@@ -3,9 +3,36 @@
 
 <head>
     <title>cologuessr</title>
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
+    <div class="container">
+        <div class="judge">
+            <input type="submit" id="judge" value="judge">
+        </div>
+        <div class="input1">
+            <input type="text" id="input1" pattern="[A-Fa-f0-9]" minlength="6" maxlength="6">
+        </div>
+        <div class="input2">
+            <input type="text" id="input2" pattern="[A-Fa-f0-9]" minlength="6" maxlength="6">
+        </div>
+        <div class="canvas1">
+            <canvas id="canvas1" class="canvas"></canvas>
+        </div>
+        <div class="canvas2">
+            <canvas id="canvas2" class="canvas"></canvas>
+        </div>
+        <div class="result1">
+            <p id="result1"></p>
+        </div>
+        <div class="result2">
+            <p id="result2"></p>
+        </div>
+        <div class="answer">
+            <p id="answer"></p>
+        </div>
+    </div>
     <script src="src/index.js"></script>
 </body>
 

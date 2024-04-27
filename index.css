@@ -1,0 +1,93 @@
+body {
+    height: 95vh;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.5fr 1fr 0.5fr 1fr 1fr;
+    grid-template-rows: 2fr 1.2fr 0.4fr 0.4fr 1.5fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+        ". . . . . . ."
+        ". canvas1 . . . canvas2 ."
+        ". input1 . judge . input2 ."
+        ". result1 . answer . result2 ."
+        ". . . . . . .";
+}
+
+.container canvas {
+    height: 200px;
+    width: 200px;
+    background-color: white;
+}
+
+.judge {
+    grid-area: judge;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.judge input {
+    font-size: xx-large;
+    height: 1.5em;
+}
+
+.input1 {
+    grid-area: input1;
+}
+
+.input2 {
+    grid-area: input2;
+}
+
+.input1 input,
+.input2 input {
+    width: 3.6em;
+    height: 1.5em;
+    font-size: xx-large;
+    font-family: Menlo, Consolas;
+}
+
+.input1,
+.input2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.canvas1,
+.canvas2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.result1 {
+    grid-area: result1;
+}
+
+.result2 {
+    grid-area: result2;
+}
+
+.result1,
+.result2,
+.answer {
+    display: flex;
+    justify-content: center;
+    font-size: x-large;
+}
+
+.canvas1 {
+    grid-area: canvas1;
+}
+
+.canvas2 {
+    grid-area: canvas2;
+}
+
+.answer {
+    grid-area: answer;
+}
