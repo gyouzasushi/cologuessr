@@ -10,7 +10,7 @@ body {
     grid-auto-flow: row;
     grid-template-areas:
         ". . . . . . ."
-        ". canvas1 . . . canvas2 ."
+        ". canvas1 . vis . canvas2 ."
         ". input1 . judge . input2 ."
         ". result1 . answer . result2 ."
         ". . . . . . .";
@@ -59,7 +59,8 @@ body {
 }
 
 .canvas1,
-.canvas2 {
+.canvas2,
+.vis {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -96,4 +97,8 @@ body {
 
 .answer {
     grid-area: answer;
+}
+
+.vis {
+    grid-area: vis;
 }
