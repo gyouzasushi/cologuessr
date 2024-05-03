@@ -67,7 +67,7 @@ function judge() {
     answerForm.style.color = textColor;
     answerForm.textContent = `answer: #${('0' + answer[0].toString(16)).slice(-2)}${('0' + answer[1].toString(16)).slice(-2)}${('0' + answer[2].toString(16)).slice(-2)}`;
 
-    vis(color1, color2, answer);
+    vis(color1, color2, answer.slice(0));
 }
 
 function euclideanDistance(a: number[], b: number[]) {
