@@ -1,5 +1,6 @@
 const answer = [Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8))];
 document.body.style.backgroundColor = `rgb(${answer[0]}, ${answer[1]}, ${answer[2]})`;
+// console.log(`#${('0' + answer[0].toString(16)).slice(-2)}${('0' + answer[1].toString(16)).slice(-2)}${('0' + answer[2].toString(16)).slice(-2)}`);
 
 const input1 = <HTMLInputElement>document.getElementById('input1')!;
 const input2 = <HTMLInputElement>document.getElementById('input2')!;
@@ -8,21 +9,32 @@ const input2 = <HTMLInputElement>document.getElementById('input2')!;
 const canvas1 = <HTMLCanvasElement>document.getElementById('canvas1')!;
 const canvas2 = <HTMLCanvasElement>document.getElementById('canvas2')!;
 const canvasVis = <HTMLCanvasElement>document.getElementById('vis')!;
+
 const ctx = canvasVis.getContext('2d')!;
-function drawCircle(x: number, y: number, r: number, fill: string) {
+function drawCircle(x: number, y: number, r: number, fill: string, stroke: string = 'none', lineWidth: number = 0) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = lineWidth;
+    if (stroke != 'none') ctx.stroke();
     ctx.fill();
     ctx.closePath();
 }
+function drawLine(sx: number, sy: number, tx: number, ty: number) {
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(tx, ty);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.closePath();
+}
 
-/* to be deleated */
-const color1 = [Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8))];
-const color2 = [Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8))];
-input1.value = `#${('0' + color1[0].toString(16)).slice(-2)}${('0' + color1[1].toString(16)).slice(-2)}${('0' + color1[2].toString(16)).slice(-2)}`
-input2.value = `#${('0' + color2[0].toString(16)).slice(-2)}${('0' + color2[1].toString(16)).slice(-2)}${('0' + color2[2].toString(16)).slice(-2)}`
-/* -------------- */
+// const color1 = [Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8))];
+// const color2 = [Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8)), Math.floor(Math.random() * (1 << 8))];
+// input1.value = `#${('0' + color1[0].toString(16)).slice(-2)}${('0' + color1[1].toString(16)).slice(-2)}${('0' + color1[2].toString(16)).slice(-2)}`
+// input2.value = `#${('0' + color2[0].toString(16)).slice(-2)}${('0' + color2[1].toString(16)).slice(-2)}${('0' + color2[2].toString(16)).slice(-2)}`
 
 
 const result1 = document.getElementById('result1')!;
@@ -55,7 +67,6 @@ function judge() {
     answerForm.style.color = textColor;
     answerForm.textContent = `answer: #${('0' + answer[0].toString(16)).slice(-2)}${('0' + answer[1].toString(16)).slice(-2)}${('0' + answer[2].toString(16)).slice(-2)}`;
 
-    console.log(color1, color2);
     vis(color1, color2, answer);
 }
 
@@ -81,35 +92,97 @@ input2.addEventListener('input', function () {
     }
 });
 
+const INF = 1e9;
 function vis(a: number[], b: number[], c: number[]) {
     const o = [
         (a[0] + b[0] + c[0]) / 3,
         (a[1] + b[1] + c[1]) / 3,
         (a[2] + b[2] + c[2]) / 3,
     ];
-    console.log(a, b, c);
-    let max_abs = Math.max(abs(a), abs(b), abs(c));
-    a = [(a[0] - o[0]) / abs(a) * max_abs, (a[1] - o[1]) / abs(a) * max_abs, (a[2] - o[2]) / abs(a) * max_abs];
-    b = [(b[0] - o[0]) / abs(b) * max_abs, (b[1] - o[1]) / abs(b) * max_abs, (b[2] - o[2]) / abs(b) * max_abs];
-    c = [(c[0] - o[0]) / abs(c) * max_abs, (c[1] - o[1]) / abs(c) * max_abs, (c[2] - o[2]) / abs(c) * max_abs];
-
-    const h = canvasVis.height;
-    const w = canvasVis.width;
-    const norm1 = det(a, b);
-    for (let s = -1.5; s <= 1.5; s += 0.05) {
-        for (let t = -1.5; t <= 1.5; t += 0.05) {
-            const v = [s * a[0] + t * b[0], s * a[1] + t * b[1], s * a[2] + t * b[2]];
-            const r = abs(v);
-            const norm2 = det([-a[0], -a[1], -a[2]], v);
-            const cos = dot(v, a) / (abs(v) * abs(a));
-            const sin = (dot(norm1, norm2) > 0 ? +1 : -1) * Math.sqrt(1 - cos * cos);
-            const x = r * cos / 2 + w / 2;
-            const y = r * sin / 2 + h / 2;
-            drawCircle(x, y, 2, `rgb(${v[0] + o[0]},${v[1] + o[0]},${v[2] + o[0]})`);
+    for (let i = 0; i < 3; i++) {
+        a[i] -= o[i];
+        b[i] -= o[i];
+        c[i] -= o[i];
+    }
+    const p = [0, 0, 0];
+    const N = canvasVis.height / 2;
+    if (a[2] == 0) {
+        p[0] = a[0];
+        p[1] = a[1];
+    } else {
+        p[0] = b[0] - a[0] * b[2] / a[2];
+        p[1] = b[1] - a[1] * b[2] / a[2];
+        for (let i = 0; i < 3; i++) {
+            p[i] *= N / abs(p);
         }
     }
-}
+    const norm = det(a, b);
+    const q = det(p, norm);
+    for (let i = 0; i < 3; i++) {
+        q[i] *= N / abs(q);
+    }
 
+    let minDistA = INF;
+    let minDistB = INF;
+    let minDistC = INF;
+    let ax = 0, ay = 0;
+    let bx = 0, by = 0;
+    let cx = 0, cy = 0;
+    let colorA = '', colorB = '', colorC = '';
+    let textColorA = 'black', textColorB = 'black', textColorC = 'black';
+    for (let y = -N; y <= N; y += 4) {
+        for (let x = -N; x <= N; x += 4) {
+            const v = [0, 0, 0];
+            for (let i = 0; i < 3; i++) {
+                const s = x / N;
+                const t = y / N;
+                v[i] = s * p[i] + t * q[i];
+            }
+            const [R, G, B] = [v[0] + o[0], v[1] + o[1], v[2] + o[2]];
+            drawCircle(x + N, y + N, 4, `rgb(${R}, ${G}, ${B})`);
+
+            const distA = euclideanDistance(v, a);
+            const distB = euclideanDistance(v, b);
+            const distC = euclideanDistance(v, c);
+
+            if (distA < minDistA) {
+                minDistA = distA;
+                ax = x, ay = y;
+                colorA = `rgb(${R}, ${G}, ${B})`;
+                // textColorA = textColor([R, G, B]);
+            }
+            if (distB < minDistB) {
+                minDistB = distB;
+                bx = x, by = y;
+                colorB = `rgb(${R}, ${G}, ${B})`;
+                // textColorB = textColor([R, G, B]);
+            }
+            if (distC < minDistC) {
+                minDistC = distC;
+                cx = x, cy = y;
+                colorC = `rgb(${R}, ${G}, ${B})`;
+                // textColorC = textColor([R, G, B]);
+            }
+
+        }
+    }
+    // console.log(ax + N, ay + N);
+    // console.log(bx + N, by + N);
+    // console.log(cx + N, cy + N);
+
+
+    drawLine(ax + N, ay + N, cx + N, cy + N);
+    drawLine(bx + N, by + N, cx + N, cy + N);
+    drawCircle(ax + N, ay + N, 3, colorA, textColorA, 3);
+    drawCircle(bx + N, by + N, 3, colorB, textColorB, 3);
+    drawCircle(cx + N, cy + N, 3, colorC, textColorC, 3);
+
+    // const distAC = Math.sqrt((ax - cx) * (ax - cx) + (ay - cy) * (ay - cy));
+    // const distBC = Math.sqrt((bx - cx) * (bx - cx) + (by - cy) * (by - cy));
+    // console.log(minDistA, minDistB, minDistC);
+    // console.log('vis:', distAC / distBC);
+    // console.log("judge:", euclideanDistance(a, c) / euclideanDistance(b, c));
+}
 
 function abs(a: number[]) {
     return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
@@ -119,4 +192,8 @@ function dot(a: number[], b: number[]) {
 }
 function det(a: number[], b: number[]) {
     return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+}
+
+function textColor(a: number[]) {
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2] < 128 ? 'white' : 'black';
 }
