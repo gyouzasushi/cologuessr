@@ -76,7 +76,6 @@ input2.addEventListener('input', function () {
         input2.value = '#' + value;
     }
 });
-const INF = 1e9;
 function vis(a, b, c) {
     const o = [
         (a[0] + b[0] + c[0]) / 3,
@@ -88,78 +87,55 @@ function vis(a, b, c) {
         b[i] -= o[i];
         c[i] -= o[i];
     }
-    const p = [0, 0, 0];
     const N = canvasVis.height / 2;
-    if (a[2] == 0) {
-        p[0] = a[0];
-        p[1] = a[1];
-    }
-    else {
-        p[0] = b[0] - a[0] * b[2] / a[2];
-        p[1] = b[1] - a[1] * b[2] / a[2];
-        for (let i = 0; i < 3; i++) {
-            p[i] *= N / abs(p);
-        }
-    }
     const norm = det(a, b);
+    const p = [-norm[1], norm[0], 0];
     const q = det(p, norm);
+    const abs_p = abs(p);
+    const abs_q = abs(q);
     for (let i = 0; i < 3; i++) {
-        q[i] *= N / abs(q);
+        p[i] /= abs_p;
+        q[i] /= abs_q;
     }
-    let minDistA = INF;
-    let minDistB = INF;
-    let minDistC = INF;
-    let ax = 0, ay = 0;
-    let bx = 0, by = 0;
-    let cx = 0, cy = 0;
-    let colorA = '', colorB = '', colorC = '';
-    let textColorA = 'black', textColorB = 'black', textColorC = 'black';
-    for (let y = -N; y <= N; y += 4) {
-        for (let x = -N; x <= N; x += 4) {
+    // console.log(dot(p, norm));
+    // console.log(dot(q, norm));
+    // console.log(dot(p, q));
+    // console.log(dot(c, norm));
+    // console.log(N, abs(p));
+    // console.log(N, abs(q));
+    const sa = (a[0] * q[1] - q[0] * a[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const ta = (p[0] * a[1] - a[0] * p[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const sb = (b[0] * q[1] - q[0] * b[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const tb = (p[0] * b[1] - b[0] * p[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const sc = (c[0] * q[1] - q[0] * c[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const tc = (p[0] * c[1] - c[0] * p[1]) / (p[0] * q[1] - q[0] * p[1]);
+    const colorA = `rgb(${a[0] + o[0]},${a[1] + o[1]},${a[2] + o[2]})`;
+    const colorB = `rgb(${b[0] + o[0]},${b[1] + o[1]},${b[2] + o[2]})`;
+    const colorC = `rgb(${c[0] + o[0]},${c[1] + o[1]},${c[2] + o[2]})`;
+    const scale = Math.max(1.0, Math.max(Math.abs(sa), Math.abs(ta), Math.abs(sb), Math.abs(tb), Math.abs(sc), Math.abs(tc)) * 1.1 / N);
+    for (let y = 0; y <= 2 * N; y += 3) {
+        for (let x = 0; x <= 2 * N; x += 3) {
             const v = [0, 0, 0];
             for (let i = 0; i < 3; i++) {
-                const s = x / N;
-                const t = y / N;
+                const s = (x - N) * scale;
+                const t = (y - N) * scale;
                 v[i] = s * p[i] + t * q[i];
             }
             const [R, G, B] = [v[0] + o[0], v[1] + o[1], v[2] + o[2]];
-            drawCircle(x + N, y + N, 4, `rgb(${R}, ${G}, ${B})`);
-            const distA = euclideanDistance(v, a);
-            const distB = euclideanDistance(v, b);
-            const distC = euclideanDistance(v, c);
-            if (distA < minDistA) {
-                minDistA = distA;
-                ax = x, ay = y;
-                colorA = `rgb(${R}, ${G}, ${B})`;
-                // textColorA = textColor([R, G, B]);
-            }
-            if (distB < minDistB) {
-                minDistB = distB;
-                bx = x, by = y;
-                colorB = `rgb(${R}, ${G}, ${B})`;
-                // textColorB = textColor([R, G, B]);
-            }
-            if (distC < minDistC) {
-                minDistC = distC;
-                cx = x, cy = y;
-                colorC = `rgb(${R}, ${G}, ${B})`;
-                // textColorC = textColor([R, G, B]);
-            }
+            drawCircle(x, y, 4, `rgb(${R}, ${G}, ${B})`);
         }
     }
-    // console.log(ax + N, ay + N);
-    // console.log(bx + N, by + N);
-    // console.log(cx + N, cy + N);
-    drawLine(ax + N, ay + N, cx + N, cy + N);
-    drawLine(bx + N, by + N, cx + N, cy + N);
-    drawCircle(ax + N, ay + N, 3, colorA, textColorA, 3);
-    drawCircle(bx + N, by + N, 3, colorB, textColorB, 3);
-    drawCircle(cx + N, cy + N, 3, colorC, textColorC, 3);
-    // const distAC = Math.sqrt((ax - cx) * (ax - cx) + (ay - cy) * (ay - cy));
-    // const distBC = Math.sqrt((bx - cx) * (bx - cx) + (by - cy) * (by - cy));
-    // console.log(minDistA, minDistB, minDistC);
-    // console.log('vis:', distAC / distBC);
-    // console.log("judge:", euclideanDistance(a, c) / euclideanDistance(b, c));
+    const ax = sa / scale + N;
+    const ay = ta / scale + N;
+    const bx = sb / scale + N;
+    const by = tb / scale + N;
+    const cx = sc / scale + N;
+    const cy = tc / scale + N;
+    drawLine(ax, ay, cx, cy);
+    drawLine(bx, by, cx, cy);
+    drawCircle(ax, ay, 3, colorA, 'black', 3);
+    drawCircle(bx, by, 3, colorB, 'black', 3);
+    drawCircle(cx, cy, 3, colorC, 'black', 3);
 }
 function abs(a) {
     return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
